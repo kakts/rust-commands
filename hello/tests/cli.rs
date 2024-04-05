@@ -7,7 +7,7 @@ fn runs() {
     // unwrapは、 Result型の中身がOkの場合は中身を取り出し、Errの場合はpanic!する
     let mut cmd = Command::cargo_bin("hello").unwrap();
 
-    cmd.assert().success();
+    cmd.assert().success().stdout("Hello, world!\n");
 }
 
 // bin/true.rsを実行するテスト
