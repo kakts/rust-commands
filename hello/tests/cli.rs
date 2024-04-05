@@ -17,3 +17,9 @@ fn true_ok() {
     cmd.assert().success();
 }
 
+// bin/false.rsを実行するテスト
+#[test]
+fn false_not_ok() {
+    let mut cmd = Command::cargo_bin("false").unwrap();
+    cmd.assert().failure();
+}
