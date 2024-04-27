@@ -1,5 +1,7 @@
 use std::error::Error;
 use clap::{App, Arg};
+use std::io::{self, BufRead, BufReader};
+use std::fs::File;
 
 /**
  * deriveマクロで、Debugトレイトを追加して構造体を表示できるようにする
@@ -20,7 +22,11 @@ type MyResult<T> = Result<T, Box<dyn Error>>;
  */
 pub fn run(config: Config) -> MyResult<()> {
     for filename in config.files {
-        println!("{}", filename);
+        // 指定したファイルをオープンする
+        match open(&filename) {
+            Err(err) => eprintln!("Failed to open {}: {}", filename, err),
+            Ok(_) => println!("Opened {}", filename),
+        }
     }
     Ok(())
 }
@@ -56,3 +62,14 @@ pub fn get_args() -> MyResult<Config> {
     })
 }
 
+/**
+ * 指定したファイル名のファイルを開いて、中身を表示する
+ * ファイル名が "-" の場合は標準入力から読み込む
+ * それ以外の場合は引数に指定したファイルを開く
+ */
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
+}
