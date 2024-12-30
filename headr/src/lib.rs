@@ -16,6 +16,29 @@ pub fn get_args() -> MyResult<Config> {
         .version("0.1.0")
         .author("hoge")
         .about("rust head command")
+        .arg(
+            Arg::with_name("files")
+                .value_name("FILE")
+                .help("Input file(s)")
+                .multiple(true)
+                .default_value("-"),
+        )
+        .arg(
+            Arg::with_name("bytes")
+                .value_name("BYTES")
+                .short("c")
+                .long("bytes")
+                .help("Number of files")
+                .conflicts_with("lines")
+        )
+        .arg(
+            Arg::with_name("lines")
+                .value_name("LINES")
+                .short("n")
+                .long("lines")
+                .help("Number of lines")
+                .default_value("10")
+        )
         .get_matches();
 
     Ok(Config {
@@ -38,7 +61,7 @@ fn parse_positive_int(val: &str) -> MyResult<usize> {
     // 0より大きい整数に変換できる場合はOk、それ以外はErr
     match val.parse() {
         Ok(n) if n > 0 => Ok(n),
-        _ => Err(From::from(val))
+        _ => Err(From::from(val)) // 数値に変換できない場合はエラー
     }
 }
 
