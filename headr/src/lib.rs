@@ -1,7 +1,7 @@
 use clap::{App, Arg};
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Read};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
@@ -72,17 +72,29 @@ pub fn run(config: Config) -> MyResult<()> {
         match open(&filename) {
             Err(err) => eprintln!("{}: {}", filename, err),
             Ok(mut file) => {
-                let mut line = String::new();
-                for _ in 0..config.lines {
-                    let bytes = file.read_line(&mut line)?;
 
-                    // EOFに達すると0byteが返される
-                    if bytes == 0 {
-                        break;
+                if let Some(num_bytes) = config.bytes {
+                    // 指定したバイト数だけ読み込む
+                    let mut handle = file.take(num_bytes as u64);
+                    // ファイルから読み込んだバイトを保持するために、0で初期化したnum_bytes長の可変バッファの作成
+                    let mut buffer = vec![0; num_bytes];
+                    let bytes_read = handle.read(&mut buffer)?;
+
+                    // 実際に読み込まれたバイト数を文字列に変換して出力
+                    print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
+                } else {
+                    let mut line = String::new();
+                    for _ in 0..config.lines {
+                        let bytes = file.read_line(&mut line)?;
+
+                        // EOFに達すると0byteが返される
+                        if bytes == 0 {
+                            break;
+                        }
+                        print!("{}", line);
+                        // バッファをクリア
+                        line.clear();
                     }
-                    print!("{}", line);
-                    // バッファをクリア
-                    line.clear();
                 }
             } 
         }
