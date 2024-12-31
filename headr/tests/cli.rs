@@ -36,16 +36,12 @@ fn gen_bad_file() -> String {
 #[test]
 fn dies_bad_bytes() -> Result<()> {
     let bad = random_string();
-    let expected = format!(
-        "invalid value '{bad}' for \
-        '--bytes <BYTES>': invalid digit found in string"
-    );
 
     Command::cargo_bin(PRG)?
         .args(["-c", &bad, EMPTY])
         .assert()
         .failure()
-        .stderr(predicate::str::contains(expected));
+        .stderr(predicate::str::contains(format!("illegal byte count -- {}", bad)));
 
     Ok(())
 }
@@ -54,15 +50,12 @@ fn dies_bad_bytes() -> Result<()> {
 #[test]
 fn dies_bad_lines() -> Result<()> {
     let bad = random_string();
-    let expected = format!(
-        "error: invalid value '{bad}' for \
-        '--lines <LINES>': invalid digit found in string"
-    );
     Command::cargo_bin(PRG)?
         .args(["-n", &bad, EMPTY])
         .assert()
         .failure()
-        .stderr(predicate::str::contains(expected));
+        // 変更前: .stderr(predicate::str::contains("invalid value 'Sy5PW5g' for '--lines <LINES>'"))
+        .stderr(predicate::str::contains(format!("illegal line count -- {}", bad)));
 
     Ok(())
 }
@@ -77,7 +70,8 @@ fn dies_bytes_and_lines() -> Result<()> {
         .args(["-n", "1", "-c", "2"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains(msg));
+       // 変更前: .stderr(predicate::str::contains("the argument '--lines <LINES>' cannot be used with '--bytes <BYTES>'"))
+       .stderr(predicate::str::contains("error: The argument '--lines <LINES>' cannot be used with '--bytes <BYTES>'"));
 
     Ok(())
 }

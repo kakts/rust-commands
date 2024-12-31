@@ -17,21 +17,6 @@ pub fn get_args() -> MyResult<Config> {
         .author("hoge")
         .about("rust head command")
         .arg(
-            Arg::with_name("files")
-                .value_name("FILE")
-                .help("Input file(s)")
-                .multiple(true)
-                .default_value("-"),
-        )
-        .arg(
-            Arg::with_name("bytes")
-                .value_name("BYTES")
-                .short("c")
-                .long("bytes")
-                .help("Number of files")
-                .conflicts_with("lines")
-        )
-        .arg(
             Arg::with_name("lines")
                 .value_name("LINES")
                 .short("n")
@@ -39,12 +24,43 @@ pub fn get_args() -> MyResult<Config> {
                 .help("Number of lines")
                 .default_value("10")
         )
+        .arg(
+            Arg::with_name("bytes")
+                .value_name("BYTES")
+                .short("c")
+                .long("bytes")
+                .takes_value(true)
+                .help("Number of files")
+                .conflicts_with("lines")
+        )
+        .arg(
+            Arg::with_name("files")
+                .value_name("FILE")
+                .help("Input file(s)")
+                .multiple(true)
+                .default_value("-"),
+        )
+
         .get_matches();
 
+    // 引数のパース
+    let lines = matches
+        .value_of("lines")
+        .map(parse_positive_int)
+        .transpose() // Option<Result<T, E>> -> Result<Option<T>, E>
+        .map_err(|e| format!("illegal line count -- {}", e))?;
+
+    let bytes = matches
+        .value_of("bytes")
+        .map(parse_positive_int)
+        .transpose()
+        .map_err(|e| format!("illegal byte count -- {}", e))?;
+
+
     Ok(Config {
-        files: matches.values_of_lossy("files").unwrap_or_default(),
-        lines: matches.value_of("lines").unwrap_or("10").parse()?,
-        bytes: matches.value_of("bytes").map(|b| b.parse()).transpose()?
+        files: matches.values_of_lossy("files").unwrap(),
+        lines: lines.unwrap(),
+        bytes,
     })
 }
 
