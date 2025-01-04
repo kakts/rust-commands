@@ -59,20 +59,21 @@ pub fn run(config: Config) -> MyResult<()> {
         _ => Box::new(io::stdout()),
     };
 
-    let mut line = String::new();
-    let mut previous = String::new();
-    let mut count: u64 = 0;
 
-    let mut print = |count: u64, text: &str| -> Result<()> {
+    let mut print = |count: u64, text: &str| -> MyResult<()> {
         if count > 0 {
             if config.count {
-                write!(out_file, "{count:>4} {text}")?;
+                write!(out_file, "{:>4} {}", count, text)?;
             } else {
-                write!(out_file, "{text}")?;
+                write!(out_file, "{}", text)?;
             }
         }
         Ok(())
     };
+
+    let mut line = String::new();
+    let mut previous = String::new();
+    let mut count: u64 = 0;
 
     loop {
         let bytes = file.read_line(&mut line)?;
@@ -90,9 +91,7 @@ pub fn run(config: Config) -> MyResult<()> {
         line.clear();
     }
 
-    if count > 0 {
-        print!("{:>4} {}", count, previous);
-    }
+    print(count, &previous)?;
     Ok(())
 
 }
