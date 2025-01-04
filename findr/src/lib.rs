@@ -2,6 +2,7 @@ use crate::EntryType::*;
 use clap::{App, Arg};
 use regex::Regex;
 use std::error::Error;
+use walkdir::WalkDir;
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
@@ -81,7 +82,7 @@ pub fn get_args() -> MyResult<Config> {
         .unwrap_or_default();
     Ok(Config {
         paths: matches
-            .values_of_lossy("path")
+            .values_of_lossy("paths")
             .unwrap_or_default(),
         names,
         entry_types
@@ -89,6 +90,13 @@ pub fn get_args() -> MyResult<Config> {
 }
 
 pub fn run(config: Config) -> MyResult<()> {
-    println!("{:?}", config);
+    for path in config.paths {
+        for entry in WalkDir::new(path) {
+            match entry {
+                Err(e) => eprintln!("{}", e),
+                Ok(entry) => println!("{}", entry.path().display()),
+            }
+        }
+    }
     Ok(())
 }
